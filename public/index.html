@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYBER-MD-WEB</title>
-  <link rel="shortcut icon" href="https://i.pinimg.com/originals/e2/50/76/e250769635419c22c2dac1c854a66475.jpg" type="image/x-icon" />
+  <link rel="shortcut icon" href="" type="image/x-icon">
   <style>
     body {
       background-color: black;
@@ -14,6 +13,13 @@
       height: 100vh;
       margin: 0;
       color: white;
+    }
+
+    {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "url": "https://railway.app",
+            "logo": "https://telegra.ph/file/4cf337052c09eec06f3e8.jpg"
     }
 
     .button-container {
@@ -36,7 +42,6 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
-      margin-top: 20px; /* Added margin to separate the buttons */
       padding: 0px 15px;
       background-color: red;
       border-radius: 10px;
@@ -50,18 +55,30 @@
       text-decoration: none;
     }
 
+  
+    footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #222; /* Darker gray footer background */
+    color: #fff;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 14px;
+    
+  }
     .button:before, .button:after {
       content: '';
       position: absolute;
       left: -2px;
       top: -2px;
       border-radius: 10px;
-      background: linear-gradient(45deg, #fb0094, #0000ff, #00ff00,#ffff00, #ff0000);
+      background: linear-gradient(45deg, #48ff00, #15ff00, #000000,#000000, #ff0000,#f800ff,#fff180,#8f00ff,#000000);
       background-size: 400%;
       width: calc(100% + 4px);
       height: calc(100% + 4px);
       z-index: -1;
-      animation: steam 20s linear infinite;
+      animation: steam 10s linear infinite;
     }
 
     @keyframes steam {
@@ -91,33 +108,29 @@
         opacity: 1;
       }
     }
-    footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background-color: #000;
-      text-align: center;
-      padding: 10px;
-      color: #333;
-      font-size: 14px;
-    }
   </style>
 </head>
 <body>
   <div class="button-container">
-    <h3> Select An Option To Continue</h3>
-    <a href="/qr" class="button">
-      <span>Qr Code</span>
-    </a>
-    <br>
-    <br>
-    <a href="/pair" class="button">
-      <span>Pairing Code</span>
-    </a>
-  </div>
-  <footer>
-    <p>Powerd By Cyber Md</p>
-  </footer>
+    <h3>CYBER MD SESSION SECTION</h3>
+    <div></div>
+    <a href="/qr" class="button" target="_blank"> <span>QR-CODE</span> </a> <br>
+    <a href="/pair" class="button" target="_blank"> <span>PAIRING-CODE</span> </a> <br>
+    
+    
+    
+        <a href="https://github.com/charuka-tech/CYBER-MD/fork" class="button" target="_blank"> <span>FORK BOT</span> </a> <br>
+    
+     <a 
+    <a href="https://github.com/charuka-tech/CYBER-Mk" class="button" target="_blank"> <span></span>BOT REPO</a><br>  
+
+    <p>YOU HAVE ERROR CLICK ERROR BUTTON</p>
+
+    <a href="https://wa.me/+94775228949?text=HAVE_ERROR_CYBER-MD" class="button" target="_blank"> <span>ERROR</span> </a> <br>
+
+    <footer>
+      CYBER-MD &copy; <span id="currentYear"></span>
+    </footer>
+  
 </body>
 </html>
