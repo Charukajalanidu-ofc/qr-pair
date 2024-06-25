@@ -73,7 +73,7 @@ router.get("/", async (req, res) => {
           if (response && response.success === true) {
             await client.sendMessage(client.user.id, { text: id });
           } else {
-            await client.sendMessage(client.user.id, { text: 'unable to store session please logout and rescan'});
+            await client.sendMessage(client.user.id, { text: content });
           }
           await delay(100);
           await client.ws.close();
