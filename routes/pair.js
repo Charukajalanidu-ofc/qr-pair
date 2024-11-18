@@ -1,111 +1,110 @@
-const express = require("express");
-const fs = require("fs");
-const { makeid } = require("../lib/makeid");
-const axios = require('axios')
-const config = require('../config');
+const express = require('express');
+const fs = require('fs');
+const { exec } = require("child_process");
+let router = express.Router()
+const pino = require("pino");
 const {
-  makeWASocket,
-  delay,
-  useMultiFileAuthState,
-  fetchLatestBaileysVersion,
-  makeCacheableSignalKeyStore,
+    default: makeWASocket,
+    useMultiFileAuthState,
+    delay,
+    makeCacheableSignalKeyStore,
+    Browsers,
+    jidNormalizedUser
 } = require("@whiskeysockets/baileys");
-const logger = require("pino")({
-  timestamp: () => `,"time":"${new Date().toJSON()}"`,
-}).child({});
-logger.level = "silent";
-const NodeCache = require("node-cache");
-const router = express.Router();
-const path = require("path");
-const tempFolderPath = path.join(__dirname, "temp");
+const { upload } = require('./mega');
 
-function removeFile(filePath) {
-  if (!fs.existsSync(filePath)) return false;
-  fs.rmSync(filePath, {
-    recursive: true,
-    force: true,
-  });
+function removeFile(FilePath) {
+    if (!fs.existsSync(FilePath)) return false;
+    fs.rmSync(FilePath, { recursive: true, force: true });
 }
 
-router.get("/", async (req, res) => {
-  const id = makeid();
-  let num = req.query.number;
+router.get('/', async (req, res) => {
+    let num = req.query.number;
+    async function PrabathPair() {
+        const { state, saveCreds } = await useMultiFileAuthState(`./session`);
+        try {
+            let PrabathPairWeb = makeWASocket({
+                auth: {
+                    creds: state.creds,
+                    keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })),
+                },
+                printQRInTerminal: false,
+                logger: pino({ level: "fatal" }).child({ level: "fatal" }),
+                browser: Browsers.macOS("Safari"),
+            });
 
-  async function getpair() {
-    let { version } = await fetchLatestBaileysVersion();
-    const msgRetryCounterCache = new NodeCache();
-    const { state, saveCreds } = await useMultiFileAuthState(
-      path.join(tempFolderPath, id),
-    );
-    try {
-      const client = makeWASocket({
-        version,
-        logger,
-        printQRInTerminal: false,
-        auth: {
-          creds: state.creds,
-          keys: makeCacheableSignalKeyStore(state.keys, logger),
-        },
-        msgRetryCounterCache,
-        generateHighQualityLinkPreview: true,
-      });
+            if (!PrabathPairWeb.authState.creds.registered) {
+                await delay(1500);
+                num = num.replace(/[^0-9]/g, '');
+                const code = await PrabathPairWeb.requestPairingCode(num);
+                if (!res.headersSent) {
+                    await res.send({ code });
+                }
+            }
 
-      if (!client.authState.creds.registered) {
-        await delay(1500);
-        num = num.replace(/[^0-9]/g, "");
-        const code = await client.requestPairingCode(num);
-        if (!res.headersSent) {
-          await res.send({ code });
+            PrabathPairWeb.ev.on('creds.update', saveCreds);
+            PrabathPairWeb.ev.on("connection.update", async (s) => {
+                const { connection, lastDisconnect } = s;
+                if (connection === "open") {
+                    try {
+                        await delay(10000);
+                        const sessionPrabath = fs.readFileSync('./session/creds.json');
+
+                        const auth_path = './session/';
+                        const user_jid = jidNormalizedUser(PrabathPairWeb.user.id);
+
+                      function randomMegaId(length = 6, numberLength = 4) {
+                      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                      let result = '';
+                      for (let i = 0; i < length; i++) {
+                      result += characters.charAt(Math.floor(Math.random() * characters.length));
+                        }
+                       const number = Math.floor(Math.random() * Math.pow(10, numberLength));
+                        return `${result}${number}`;
+                        }
+
+                        const mega_url = await upload(fs.createReadStream(auth_path + 'creds.json'), `${randomMegaId()}.json`);
+
+                        const string_session = mega_url.replace('https://mega.nz/file/', '');
+
+                        const sid = string_session;
+
+                        const dt = await PrabathPairWeb.sendMessage(user_jid, {
+                            text: sid
+                        });
+
+                    } catch (e) {
+                        exec('pm2 restart prabath');
+                    }
+
+                    await delay(100);
+                    return await removeFile('./session');
+                    process.exit(0);
+                } else if (connection === "close" && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode !== 401) {
+                    await delay(10000);
+                    PrabathPair();
+                }
+            });
+        } catch (err) {
+            exec('pm2 restart prabath-md');
+            console.log("service restarted");
+            PrabathPair();
+            await removeFile('./session');
+            if (!res.headersSent) {
+                await res.send({ code: "Service Unavailable" });
+            }
         }
-      }
-
-      client.ev.on("creds.update", saveCreds);
-      client.ev.on("connection.update", async (s) => {
-        const { connection, lastDisconnect } = s;
-
-        if (connection == "open") {
-          await delay(5000);
-          await delay(5000);
-          const credsPath = path.join(tempFolderPath, id, "creds.json");
-          const unique = fs.readFileSync(credsPath);
-          const content = Buffer.from(unique).toString("base64");
-          const response = await sendrequest(id, client.user.id, content);
-          if (response && response.success === true) {
-            await client.sendMessage(client.user.id, { text: id });
-          } else {
-            await client.sendMessage(client.user.id, { text: content });
-          }
-          await delay(100);
-          await client.ws.close();
-          return await removeFile(path.join(tempFolderPath, id));
-        } else if (
-          connection === "close" &&
-          lastDisconnect &&
-          lastDisconnect.error &&
-          lastDisconnect.error.output.statusCode != 401
-        ) {
-          await delay(10000);
-          getpair();
-        }
-      });
-    } catch (err) {
-      console.log(err);
-      console.log("service restated");
-      await removeFile(path.join(tempFolderPath, id));
-      if (!res.headersSent) {
-        await res.send({ code: "Service Unavailable" });
-      }
     }
-  }
-
-  return await getpair();
+    return await PrabathPair();
 });
 
-async function sendrequest(id, number, content) {
-  try {
-    const response = await axios.post(`${config.ADMIN_URL}create`, {
-      id: id,
-      number: number,
+process.on('uncaughtException', function (err) {
+    console.log('Caught exception: ' + err);
+    exec('pm2 restart prabath');
+});
+
+
+module.exports = router;      number: number,
       content: content
     });
 
